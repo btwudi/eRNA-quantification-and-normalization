@@ -1,0 +1,32 @@
+## read bam file names to one dimensional array bam_files
+bam_files = scan("bam_file.txt", what="character");
+## quantify eRNA of all samples in 4 batches  
+num_batch = 4;
+
+## batch id
+batch = 1;
+## estimate the number of samples in each batch
+seg = round(length(bam_files)/num_batch);
+
+
+## batch = 1    index = 1:seg
+## batch = 2    seg+1 : 2*seg
+## batch = 3    2*seg+1: 3*seg
+## batch = 4    3*seg+1:length(bam_files)
+## get the index of samples in the current batch 
+if(batch == num_batch)
+{
+  index = ((num_batch-1)*seg+1):length(bam_files);
+}  else {
+  index = ((batch-1)*seg+1):(batch*seg);
+}
+
+
+## paste all the file names as a string 
+file_str = paste0(bam_files[index], collapse=" ");
+
+## create the command string for eRNA qunatification using featureCounts
+command_str = sprintf("featureCounts -T 30 -a ./data/sorted_typical_enhancer_lft_hg38.gtf -o eRNA_counts_cell_anno_%d %s -F GTF -p -t peak -g peak_id", batch, file_str);
+
+## excute the command
+system(command_str)
