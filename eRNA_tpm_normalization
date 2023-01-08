@@ -1,0 +1,23 @@
+setwd("/data/wud8/eRNA_project/data")
+
+## read count_table and count_table_summary
+count_table = readRDS("eRNA_count_cell_anno_465_samples.rds");
+count_table_summary = readRDS("eRNA_count_cell_anno_465_samples.summary.rds");
+## match the columns of count_table and count_table_summary according to sample ids
+## extract raw count info
+counts = apply(as.matrix(count_table[,7:ncol(count_table)]), 2, as.numeric);
+counts_summary = apply(as.matrix(count_table_summary[,2:ncol(count_table_summary)]), 2, as.numeric);
+## compute the total counts in each sample
+counts_summary.all = apply(counts_summary,2, sum);
+
+
+## normalize each sample by TPM = (counts / lengths)  / sum(counts / lengths) * 1e6                            
+for(i in 1:ncol(counts))
+{
+        counts[,i] = 1000000 * (counts[,i] / as.numeric(count_table[,6])) / sum(counts[,i] / as.numeric(count_table[,6]))
+}
+## name the rows and columns of the normalized TPM table
+rownames(counts) = as.character(count_table[,1]);
+colnames(counts) = names(count_table)[7:ncol(count_table)];
+## save the TPM table
+saveRDS(counts, "eRNA_TPM_465_samples_cell_anno.rds")
